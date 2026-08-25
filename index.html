@@ -62,19 +62,20 @@
         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
         </div>
-        <input type="text" id="searchInput" placeholder="Search Brand or Active Ingredient..." 
+        <input type="text" id="searchInput" placeholder="Search Brand, Ingredient, or Indication..." 
                class="w-full pl-10 pr-3 py-3 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 shadow-sm"
                onkeyup="filterDrugs()">
       </div>
     </div>
 
     <!-- Filter Chips Area -->
-    <div class="bg-white border-b px-4 py-3 flex overflow-x-auto gap-2 shrink-0 no-scrollbar">
-      <button class="filter-btn bg-blue-100 text-blue-700 border-blue-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('All', this)">All</button>
-      <button class="filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('NSAID', this)">NSAIDs</button>
-      <button class="filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('Analgesic', this)">Analgesics</button>
-      <!-- You can add more buttons here matching your Classes or Indications -->
-    </div>
+<div class="bg-white border-b px-4 py-3 flex overflow-x-auto gap-2 shrink-0 no-scrollbar">
+  <button class="filter-btn bg-blue-100 text-blue-700 border-blue-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('All', this)">All</button>
+  <button class="filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('NSAID', this)">NSAIDs</button>
+  <button class="filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('Fever', this)">Fever</button>
+  <button class="filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('Gout', this)">Gout</button>
+  <button class="filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('Arthritis', this)">Arthritis</button>
+</div>
 
     <!-- Scrolling Drug List -->
     <div id="drugListContainer" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50 pb-20">
@@ -258,27 +259,29 @@
       });
       btnElement.className = "filter-btn bg-blue-100 text-blue-700 border-blue-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border";
       
-      filterDrugs();
-    }
-
-    function filterDrugs() {
-      const term = document.getElementById('searchInput').value.toLowerCase();
-      
-      const filtered = allDrugs.filter(drug => {
-        // Safe check in case a cell is blank in Google Sheets
-        const brand = (drug.BrandName || "").toLowerCase();
-        const generic = (drug.GenericName || "").toLowerCase();
-        const drugClass = (drug.Class || "");
-        
-        const matchesSearch = brand.includes(term) || generic.includes(term);
-        const matchesFilter = currentFilter === 'All' || drugClass.includes(currentFilter);
-        
-        return matchesSearch && matchesFilter;
-      });
-      
-      renderList(filtered);
-    }
-
+   function filterDrugs() {
+  const term = document.getElementById('searchInput').value.toLowerCase();
+  
+  const filtered = allDrugs.filter(drug => {
+    // 1. Grab all relevant data and convert to lowercase for easy matching
+    const brand = (drug.BrandName || "").toLowerCase();
+    const generic = (drug.GenericName || "").toLowerCase();
+    const drugClass = (drug.Class || "").toLowerCase();
+    const indications = (drug.Indications || "").toLowerCase();
+    
+    // 2. Check if the typed search term is in Brand, Generic, OR Indications
+    const matchesSearch = brand.includes(term) || generic.includes(term) || indications.includes(term);
+    
+    // 3. Check if the selected Filter Chip is in Class OR Indications
+    const filterLower = currentFilter.toLowerCase();
+    const matchesFilter = currentFilter === 'All' || drugClass.includes(filterLower) || indications.includes(filterLower);
+    
+    // 4. Return the drug only if it matches both the search text and the active chip
+    return matchesSearch && matchesFilter;
+  });
+  
+  renderList(filtered);
+}
     // --- UI Rendering ---
     function renderList(drugs) {
       const container = document.getElementById('drugListContainer');
