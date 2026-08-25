@@ -4,14 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#2563eb">
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <title>PMG Drug Info</title>
-  <title>PMG Drug Info</title>
-  <!-- MAGIC CACHE-BUSTING TAGS -->
+  
+  <!-- Cache-Busting Tags to force app updates instantly -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta name="Expires" content="0">
+  
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>PMG Drug Info</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -22,12 +23,7 @@
     body { -webkit-tap-highlight-color: transparent; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    
-    /* Makes the native 'clear' X on search inputs look better on mobile */
-    input[type="search"]::-webkit-search-cancel-button {
-      -webkit-appearance: searchfield-cancel-button;
-      cursor: pointer;
-    }
+    input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: searchfield-cancel-button; cursor: pointer; }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800 antialiased h-screen overflow-hidden flex flex-col">
@@ -45,9 +41,7 @@
         <input type="password" id="pinInput" placeholder="Enter 6-digit PIN" 
                class="w-full text-center text-2xl tracking-widest p-4 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-0 outline-none mb-4 transition-all"
                inputmode="numeric" maxlength="6">
-               
-        <button type="submit" id="loginBtn" 
-                class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-blue-700 transition-colors">
+        <button type="submit" id="loginBtn" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-blue-700 transition-colors">
           Unlock
         </button>
       </form>
@@ -70,17 +64,17 @@
         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
         </div>
-        <!-- Changed to type="search" to get the native clear button on phones -->
         <input type="search" id="searchInput" placeholder="Search all fields..." 
                class="w-full pl-10 pr-3 py-3 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 shadow-sm"
                onkeyup="filterDrugs()" onsearch="filterDrugs()">
       </div>
     </div>
 
+    <!-- Updated Filter Chips -->
     <div class="bg-white border-b px-4 py-3 flex overflow-x-auto gap-2 shrink-0 no-scrollbar">
       <button class="filter-btn bg-blue-100 text-blue-700 border-blue-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('All', this)">All</button>
       <button class="filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('Brand', this)">Brand Name</button>
-      <button class="filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('Generic', this)">Generic Name</button>
+      <button class="filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('Active', this)">Active Ingredient</button>
       <button class="filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('Class', this)">Class</button>
       <button class="filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('Indications', this)">Indications</button>
     </div>
@@ -100,12 +94,24 @@
       </div>
       
       <div class="px-6 pb-4 pt-2 border-b shrink-0 flex justify-between items-start">
-        <div>
+        <div class="flex-1 pr-2">
           <h2 id="modalBrand" class="text-2xl font-bold text-gray-900 leading-tight"></h2>
-          <p id="modalGeneric" class="text-blue-600 font-medium text-sm mt-1"></p>
-          <span id="modalClass" class="inline-block mt-2 bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded-md font-medium border"></span>
+          <!-- Clarified Active vs Generic -->
+          <p id="modalActiveIng" class="text-blue-600 font-bold text-sm mt-1 flex items-center"><i class="fa-solid fa-flask mr-1.5"></i><span></span></p>
+          <p id="modalGeneric" class="text-gray-500 font-medium text-xs mt-0.5">Generic: <span></span></p>
+          
+          <!-- Badges for Class, Pregnancy, G6PD -->
+          <div class="mt-3 flex flex-wrap gap-2">
+            <span id="modalClass" class="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded border font-medium"></span>
+            <span id="modalPregnancyWrap" class="hidden inline-block bg-pink-50 text-pink-700 border-pink-200 border text-xs px-2 py-1 rounded font-medium">
+              <i class="fa-solid fa-person-pregnant mr-1"></i><span id="modalPregnancy"></span>
+            </span>
+            <span id="modalG6PDWrap" class="hidden inline-block bg-amber-50 text-amber-700 border-amber-200 border text-xs px-2 py-1 rounded font-medium">
+              <i class="fa-solid fa-triangle-exclamation mr-1"></i>G6PD: <span id="modalG6PD"></span>
+            </span>
+          </div>
         </div>
-        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center shrink-0"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
       <div class="p-6 overflow-y-auto flex-1 space-y-5 bg-gray-50">
@@ -171,13 +177,20 @@
     let allDrugs = [];
     let currentFilter = 'All';
 
+    // Helper to extract data regardless of exact column spacing/casing
+    function getData(drug, keys) {
+      for (let key of keys) {
+        if (drug[key] !== undefined && drug[key] !== null) return String(drug[key]);
+      }
+      return "";
+    }
+
     async function attemptLogin() {
       const pin = document.getElementById('pinInput').value;
       const btn = document.getElementById('loginBtn');
       const err = document.getElementById('loginError');
       
       if(!pin) return;
-
       btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
       err.classList.add('hidden');
 
@@ -187,9 +200,7 @@
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ pin: pin })
         });
-        
         const result = await response.json();
-        
         if(result.status === 'success') {
           allDrugs = result.data;
           showMainApp();
@@ -223,28 +234,19 @@
 
     function setFilter(filterCategory, btnElement) {
       currentFilter = filterCategory;
-      
       document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.className = "filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border";
       });
       btnElement.className = "filter-btn bg-blue-100 text-blue-700 border-blue-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border";
       
       const searchInput = document.getElementById('searchInput');
-      if (filterCategory === 'All') {
-        searchInput.placeholder = "Search all fields...";
-      } else {
-        searchInput.placeholder = "Search by " + btnElement.innerText + "...";
-      }
+      if (filterCategory === 'All') searchInput.placeholder = "Search all fields...";
+      else searchInput.placeholder = "Search by " + btnElement.innerText + "...";
       
-      // Clear the search input when switching to Class or Indications so they see the folders
-      if (filterCategory === 'Class' || filterCategory === 'Indications') {
-        searchInput.value = '';
-      }
-      
+      if (filterCategory === 'Class' || filterCategory === 'Indications') searchInput.value = '';
       filterDrugs();
     }
 
-    // New helper to set search text and trigger filter when a folder is clicked
     function selectCategoryFolder(term) {
       document.getElementById('searchInput').value = term;
       filterDrugs();
@@ -254,17 +256,18 @@
       const term = document.getElementById('searchInput').value.toLowerCase();
       
       const filtered = allDrugs.filter(drug => {
-        const brand = (drug.BrandName || "").toLowerCase();
-        const generic = (drug.GenericName || "").toLowerCase();
-        const drugClass = (drug.Class || "").toLowerCase();
-        const indications = (drug.Indications || "").toLowerCase();
+        const brand = getData(drug, ['BrandName', 'Brand Name', 'Brand']).toLowerCase();
+        const active = getData(drug, ['ActiveIngredient', 'Active Ingredient', 'Active']).toLowerCase();
+        const generic = getData(drug, ['GenericName', 'Generic Name', 'GenericTradeName']).toLowerCase();
+        const drugClass = getData(drug, ['Class']).toLowerCase();
+        const indications = getData(drug, ['Indications']).toLowerCase();
         
         if (currentFilter === 'All') {
-          return brand.includes(term) || generic.includes(term) || drugClass.includes(term) || indications.includes(term);
+          return brand.includes(term) || active.includes(term) || generic.includes(term) || drugClass.includes(term) || indications.includes(term);
         } else if (currentFilter === 'Brand') {
           return brand.includes(term);
-        } else if (currentFilter === 'Generic') {
-          return generic.includes(term);
+        } else if (currentFilter === 'Active') {
+          return active.includes(term);
         } else if (currentFilter === 'Class') {
           return drugClass.includes(term);
         } else if (currentFilter === 'Indications') {
@@ -272,31 +275,30 @@
         }
         return true;
       });
-      
       renderList(filtered);
     }
 
     function renderList(drugs) {
       const container = document.getElementById('drugListContainer');
       container.innerHTML = '';
-      
       const term = document.getElementById('searchInput').value.trim();
       
-      // --- FOLDER VIEW LOGIC ---
-      // If the search bar is empty and they are on Class or Indications, generate the directory!
+      // FOLDER VIEW LOGIC
       if (term === '' && (currentFilter === 'Class' || currentFilter === 'Indications')) {
         let items = new Set();
         
         if (currentFilter === 'Class') {
-          allDrugs.forEach(d => { if(d.Class) items.add(d.Class.trim()); });
+          allDrugs.forEach(d => { 
+            let val = getData(d, ['Class']);
+            if(val) items.add(val.trim()); 
+          });
         } else if (currentFilter === 'Indications') {
           allDrugs.forEach(d => {
-            if(d.Indications) {
-              // Split by commas to separate multiple indications
-              d.Indications.split(',').forEach(part => {
-                let clean = part.trim().replace(/\.$/, ''); // Remove trailing periods
+            let val = getData(d, ['Indications']);
+            if(val) {
+              val.split(',').forEach(part => {
+                let clean = part.trim().replace(/\.$/, '');
                 if(clean.length > 1) {
-                  // Capitalize the first letter for neatness
                   clean = clean.charAt(0).toUpperCase() + clean.slice(1);
                   items.add(clean);
                 }
@@ -306,7 +308,6 @@
         }
 
         const sortedItems = Array.from(items).sort();
-        
         if(sortedItems.length === 0) {
           container.innerHTML = '<div class="text-center text-gray-500 mt-10">No categories found.</div>';
           return;
@@ -315,27 +316,19 @@
         sortedItems.forEach(item => {
           const card = document.createElement('div');
           card.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-100 active:bg-blue-50 transition cursor-pointer mb-3";
-          // When clicked, auto-fill the search bar with this indication/class
           card.onclick = () => selectCategoryFolder(item);
-          
           card.innerHTML = `
             <div class="flex justify-between items-center">
-              <div>
-                <h3 class="font-bold text-gray-900"><i class="fa-solid fa-folder-open text-blue-400 mr-3"></i>${item}</h3>
-              </div>
+              <div><h3 class="font-bold text-gray-900"><i class="fa-solid fa-folder-open text-blue-400 mr-3"></i>${item}</h3></div>
               <i class="fa-solid fa-chevron-right text-gray-300"></i>
             </div>
           `;
           container.appendChild(card);
         });
-        
-        // Stop here so we don't render the drugs below the folders
         return; 
       }
-      // --- END FOLDER VIEW LOGIC ---
 
-
-      // --- DRUG VIEW LOGIC ---
+      // DRUG VIEW LOGIC
       if(drugs.length === 0) {
         container.innerHTML = '<div class="text-center text-gray-500 mt-10">No medications found.</div>';
         return;
@@ -346,13 +339,16 @@
         card.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-100 active:bg-gray-50 transition mb-3 cursor-pointer";
         card.onclick = () => openModal(drug);
         
-        const displayBrand = (drug.BrandName || "Unknown").split(',')[0] + ((drug.BrandName || "").includes(',') ? ' ...' : '');
+        const rawBrand = getData(drug, ['BrandName', 'Brand Name', 'Brand']) || "Unknown";
+        const displayBrand = rawBrand.split(',')[0] + (rawBrand.includes(',') ? ' ...' : '');
         
-        let subtitleText = drug.GenericName || "";
+        // Priority for subtitle text
+        let subtitleText = getData(drug, ['ActiveIngredient', 'Active Ingredient', 'Active']) || getData(drug, ['GenericName', 'Generic Name']);
+        
         if (currentFilter === 'Class') {
-          subtitleText = drug.Class || "No class data";
+          subtitleText = getData(drug, ['Class']) || "No class data";
         } else if (currentFilter === 'Indications') {
-          subtitleText = drug.Indications || "No indications data";
+          subtitleText = getData(drug, ['Indications']) || "No indications data";
         }
 
         card.innerHTML = `
@@ -369,31 +365,30 @@
     }
 
     function openModal(drug) {
-      document.getElementById('modalBrand').innerText = drug.BrandName || "N/A";
-      document.getElementById('modalGeneric').innerText = drug.GenericName || "N/A";
-      document.getElementById('modalClass').innerText = drug.Class || "N/A";
+      // Basic Data
+      document.getElementById('modalBrand').innerText = getData(drug, ['BrandName', 'Brand Name', 'Brand']) || "N/A";
+      document.querySelector('#modalActiveIng span').innerText = getData(drug, ['ActiveIngredient', 'Active Ingredient', 'Active']) || "Active Ingredient N/A";
+      document.querySelector('#modalGeneric span').innerText = getData(drug, ['GenericName', 'Generic Name', 'GenericTradeName']) || "N/A";
+      document.getElementById('modalClass').innerText = getData(drug, ['Class']) || "No Class";
       
-      document.getElementById('modalIndication').innerText = drug.Indications || "No data provided.";
-      document.getElementById('modalDoseAdult').innerText = drug.DoseAdult || "No data provided.";
-      document.getElementById('modalDoseKids').innerText = drug.DoseKids || "No data provided.";
+      // Specialized Badges (Pregnancy & G6PD)
+      const preg = getData(drug, ['Pregnancy', 'pregnancy', 'Pregnancy Category']);
+      const g6pd = getData(drug, ['G6PD', 'G6pd', 'g6pd']);
       
-      document.getElementById('modalMOA').innerText = drug.MOA || "No data provided.";
-      document.getElementById('modalCounseling').innerText = drug.CounselingPoints || "No data provided.";
-      document.getElementById('modalSideEffects').innerText = drug.SideEffects || "No data provided.";
-      document.getElementById('modalInteractions').innerText = drug.Interactions || "No data provided.";
+      const pregWrap = document.getElementById('modalPregnancyWrap');
+      if(preg) {
+        document.getElementById('modalPregnancy').innerText = preg;
+        pregWrap.classList.remove('hidden');
+      } else { pregWrap.classList.add('hidden'); }
+      
+      const g6pdWrap = document.getElementById('modalG6PDWrap');
+      if(g6pd) {
+        document.getElementById('modalG6PD').innerText = g6pd;
+        g6pdWrap.classList.remove('hidden');
+      } else { g6pdWrap.classList.add('hidden'); }
 
-      document.querySelectorAll('details').forEach(detail => detail.removeAttribute('open'));
-
-      const modal = document.getElementById('drugModal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-
-    function closeModal() {
-      const modal = document.getElementById('drugModal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }
-  </script>
-</body>
-</html>
+      // Details
+      document.getElementById('modalIndication').innerText = getData(drug, ['Indications']) || "No data provided.";
+      document.getElementById('modalDoseAdult').innerText = getData(drug, ['DoseAdult', 'Dose Adult']) || "No data provided.";
+      document.getElementById('modalDoseKids').innerText = getData(drug, ['DoseKids', 'Dose Kids']) || "No data provided.";
+      document.getEle
