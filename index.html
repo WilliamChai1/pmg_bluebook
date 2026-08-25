@@ -180,7 +180,6 @@
         
         if(result.status === 'success') {
           allDrugs = result.data;
-          
           showMainApp();
           renderList(allDrugs);
         } else {
@@ -197,7 +196,6 @@
     }
 
     function logout() {
-      // Clear data from memory and reset UI
       allDrugs = [];
       document.getElementById('mainApp').classList.add('hidden');
       document.getElementById('mainApp').classList.remove('flex');
@@ -279,14 +277,23 @@
         card.onclick = () => openModal(drug);
         
         const displayBrand = (drug.BrandName || "Unknown").split(',')[0] + ((drug.BrandName || "").includes(',') ? ' ...' : '');
+        
+        // --- THIS IS THE NEW MAGIC ---
+        // Dynamically change the subtitle based on the active tab!
+        let subtitleText = drug.GenericName || "";
+        if (currentFilter === 'Class') {
+          subtitleText = drug.Class || "No class data";
+        } else if (currentFilter === 'Indications') {
+          subtitleText = drug.Indications || "No indications data";
+        }
 
         card.innerHTML = `
           <div class="flex justify-between items-center">
-            <div>
+            <div class="pr-4 flex-1">
               <h3 class="font-bold text-gray-900">${displayBrand}</h3>
-              <p class="text-sm text-gray-500">${drug.GenericName || ""}</p>
+              <p class="text-sm text-gray-500 line-clamp-2 mt-0.5">${subtitleText}</p>
             </div>
-            <i class="fa-solid fa-chevron-right text-gray-300"></i>
+            <i class="fa-solid fa-chevron-right text-gray-300 shrink-0"></i>
           </div>
         `;
         container.appendChild(card);
