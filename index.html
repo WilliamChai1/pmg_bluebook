@@ -8,10 +8,7 @@
   <link rel="apple-touch-icon" href="icon-192.png">
   <title>PMG Drug Info</title>
   
-  <!-- Load Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Load FontAwesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
@@ -25,7 +22,7 @@
 <body class="bg-gray-50 text-gray-800 antialiased h-screen overflow-hidden flex flex-col">
 
   <!-- ==========================================
-       SCREEN 1: LOGIN
+       SCREEN 1: LOGIN 
        ========================================== -->
   <div id="loginScreen" class="flex-1 flex flex-col items-center justify-center p-6 z-50 bg-white absolute inset-0">
     <div class="w-full max-w-sm text-center">
@@ -33,14 +30,16 @@
       <h1 class="text-2xl font-bold mb-2 text-gray-900">PMG Drug Info</h1>
       <p class="text-gray-500 mb-8 text-sm">Enter outlet PIN to access</p>
       
-      <input type="password" id="pinInput" placeholder="Enter 6-digit PIN" 
-             class="w-full text-center text-2xl tracking-widest p-4 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-0 outline-none mb-4 transition-all"
-             inputmode="numeric" maxlength="6">
-             
-      <button id="loginBtn" onclick="attemptLogin()" 
-              class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-blue-700 transition-colors">
-        Unlock
-      </button>
+      <form onsubmit="event.preventDefault(); attemptLogin();" class="w-full">
+        <input type="password" id="pinInput" placeholder="Enter 6-digit PIN" 
+               class="w-full text-center text-2xl tracking-widest p-4 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-0 outline-none mb-4 transition-all"
+               inputmode="numeric" maxlength="6">
+               
+        <button type="submit" id="loginBtn" 
+                class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-blue-700 transition-colors">
+          Unlock
+        </button>
+      </form>
       <p id="loginError" class="text-red-500 text-sm mt-4 hidden font-medium"></p>
     </div>
   </div>
@@ -50,14 +49,12 @@
        ========================================== -->
   <div id="mainApp" class="hidden flex-col h-full w-full">
     
-    <!-- Sticky Header -->
     <div class="bg-blue-600 text-white p-4 shadow-md z-10 shrink-0">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-bold"><i class="fa-solid fa-pills mr-2"></i>Drug Info</h2>
         <button onclick="logout()" class="text-blue-100 text-sm hover:text-white"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
       </div>
       
-      <!-- Search Bar -->
       <div class="relative">
         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
@@ -68,7 +65,6 @@
       </div>
     </div>
 
-    <!-- Filter Chips Area (Updated to Categories) -->
     <div class="bg-white border-b px-4 py-3 flex overflow-x-auto gap-2 shrink-0 no-scrollbar">
       <button class="filter-btn bg-blue-100 text-blue-700 border-blue-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('All', this)">All</button>
       <button class="filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('Brand', this)">Brand Name</button>
@@ -77,7 +73,6 @@
       <button class="filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('Indications', this)">Indications</button>
     </div>
 
-    <!-- Scrolling Drug List -->
     <div id="drugListContainer" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50 pb-20">
       <div class="text-center text-gray-500 mt-10"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><br>Loading database...</div>
     </div>
@@ -88,13 +83,10 @@
        ========================================== -->
   <div id="drugModal" class="fixed inset-0 bg-black/60 z-[60] hidden flex-col justify-end transition-opacity">
     <div class="bg-white w-full rounded-t-3xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl relative">
-      
-      <!-- Close Handle -->
       <div class="w-full flex justify-center pt-3 pb-1 shrink-0" onclick="closeModal()">
         <div class="w-12 h-1.5 bg-gray-300 rounded-full"></div>
       </div>
       
-      <!-- Modal Header -->
       <div class="px-6 pb-4 pt-2 border-b shrink-0 flex justify-between items-start">
         <div>
           <h2 id="modalBrand" class="text-2xl font-bold text-gray-900 leading-tight"></h2>
@@ -104,16 +96,12 @@
         <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <!-- Modal Content (Scrollable) -->
       <div class="p-6 overflow-y-auto flex-1 space-y-5 bg-gray-50">
-        
-        <!-- Indications -->
         <div>
           <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1"><i class="fa-solid fa-bullseye mr-1"></i> Indications</h3>
           <p id="modalIndication" class="text-gray-800 text-sm bg-white p-3 rounded-lg border shadow-sm"></p>
         </div>
 
-        <!-- Dosages -->
         <div class="grid grid-cols-2 gap-3">
           <div class="bg-orange-50 border border-orange-100 p-3 rounded-lg">
             <h3 class="text-xs font-bold text-orange-600 uppercase tracking-wider mb-1"><i class="fa-solid fa-person mr-1"></i> Adult Dose</h3>
@@ -125,7 +113,6 @@
           </div>
         </div>
 
-        <!-- Expandable Details -->
         <div class="bg-white rounded-lg border shadow-sm divide-y">
           <details class="group p-4">
             <summary class="font-bold text-gray-800 cursor-pointer flex justify-between items-center text-sm">
@@ -167,24 +154,10 @@
        JAVASCRIPT LOGIC
        ========================================== -->
   <script>
-    // Live Apps Script Web App URL
     const API_URL = "https://script.google.com/macros/s/AKfycbwY_lVzzrHYb9VAqbx0me6BjXJfPsg3nHPhyPwKgj_ocryi1w-Vkf8BC02OR_8wvd9rIw/exec"; 
     
     let allDrugs = [];
     let currentFilter = 'All';
-
-    window.onload = () => {
-      if(localStorage.getItem('pmg_drug_auth') === 'true') {
-        const savedData = localStorage.getItem('pmg_drug_data');
-        if(savedData) {
-          allDrugs = JSON.parse(savedData);
-          showMainApp();
-          renderList(allDrugs);
-        } else {
-          logout();
-        }
-      }
-    };
 
     async function attemptLogin() {
       const pin = document.getElementById('pinInput').value;
@@ -199,6 +172,7 @@
       try {
         const response = await fetch(API_URL, {
           method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ pin: pin })
         });
         
@@ -206,27 +180,25 @@
         
         if(result.status === 'success') {
           allDrugs = result.data;
-          localStorage.setItem('pmg_drug_auth', 'true');
-          localStorage.setItem('pmg_drug_data', JSON.stringify(allDrugs)); 
           
           showMainApp();
           renderList(allDrugs);
         } else {
           err.innerText = result.message || "Invalid PIN";
           err.classList.remove('hidden');
-          document.getElementById('pinInput').value = '';
         }
       } catch (error) {
         err.innerText = "Connection error. Please try again.";
         err.classList.remove('hidden');
       } finally {
         btn.innerHTML = 'Unlock';
+        document.getElementById('pinInput').value = '';
       }
     }
 
     function logout() {
-      localStorage.removeItem('pmg_drug_auth');
-      localStorage.removeItem('pmg_drug_data');
+      // Clear data from memory and reset UI
+      allDrugs = [];
       document.getElementById('mainApp').classList.add('hidden');
       document.getElementById('mainApp').classList.remove('flex');
       document.getElementById('loginScreen').classList.remove('hidden');
@@ -239,7 +211,6 @@
       document.getElementById('mainApp').classList.add('flex');
     }
 
-    // --- Dynamic Filtering Logic ---
     function setFilter(filterCategory, btnElement) {
       currentFilter = filterCategory;
       
@@ -284,10 +255,18 @@
       renderList(filtered);
     }
 
-    // --- UI Rendering ---
     function renderList(drugs) {
       const container = document.getElementById('drugListContainer');
       container.innerHTML = '';
+      
+      const term = document.getElementById('searchInput').value.trim();
+      
+      if (term === '' && currentFilter !== 'All') {
+        const hint = document.createElement('div');
+        hint.className = "text-center text-blue-500 text-sm mb-4 font-medium p-3 bg-blue-50 rounded-lg";
+        hint.innerHTML = `<i class="fa-solid fa-arrow-up mr-2"></i> Type in the search bar to find by ${currentFilter}`;
+        container.appendChild(hint);
+      }
       
       if(drugs.length === 0) {
         container.innerHTML = '<div class="text-center text-gray-500 mt-10">No medications found.</div>';
@@ -314,7 +293,6 @@
       });
     }
 
-    // --- Modal Logic ---
     function openModal(drug) {
       document.getElementById('modalBrand').innerText = drug.BrandName || "N/A";
       document.getElementById('modalGeneric').innerText = drug.GenericName || "N/A";
