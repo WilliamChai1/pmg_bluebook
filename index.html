@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- This line forces the portrait mobile app layout -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PMG Drug Info</title>
+  
+  <!-- Load Tailwind CSS via CDN for fast styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Load FontAwesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* Clean up the scrollbar for mobile feel */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    body { -webkit-tap-highlight-color: transparent; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased h-screen overflow-hidden flex flex-col">
+
+  <!-- ==========================================
+       SCREEN 1: LOGIN
+       ========================================== -->
+  <div id="loginScreen" class="flex-1 flex flex-col items-center justify-center p-6 z-50 bg-white absolute inset-0">
+    <div class="w-full max-w-sm text-center">
+      <div class="text-blue-600 text-5xl mb-4"><i class="fa-solid fa-pills"></i></div>
+      <h1 class="text-2xl font-bold mb-2 text-gray-900">PMG Drug Info</h1>
+      <p class="text-gray-500 mb-8 text-sm">Enter outlet PIN to access</p>
+      
+      <input type="password" id="pinInput" placeholder="Enter 6-digit PIN" 
+             class="w-full text-center text-2xl tracking-widest p-4 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-0 outline-none mb-4 transition-all"
+             inputmode="numeric" maxlength="6">
+             
+      <button id="loginBtn" onclick="attemptLogin()" 
+              class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-blue-700 transition-colors">
+        Unlock
+      </button>
+      <p id="loginError" class="text-red-500 text-sm mt-4 hidden font-medium"></p>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       SCREEN 2: MAIN APP (Hidden by default)
+       ========================================== -->
+  <div id="mainApp" class="hidden flex-col h-full w-full">
+    
+    <!-- Sticky Header -->
+    <div class="bg-blue-600 text-white p-4 shadow-md z-10 shrink-0">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold"><i class="fa-solid fa-pills mr-2"></i>Drug Info</h2>
+        <button onclick="logout()" class="text-blue-100 text-sm hover:text-white"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+      </div>
+      
+      <!-- Search Bar -->
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
+        </div>
+        <input type="text" id="searchInput" placeholder="Search Brand or Active Ingredient..." 
+               class="w-full pl-10 pr-3 py-3 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 shadow-sm"
+               onkeyup="filterDrugs()">
+      </div>
+    </div>
+
+    <!-- Filter Chips Area -->
+    <div class="bg-white border-b px-4 py-3 flex overflow-x-auto gap-2 shrink-0 no-scrollbar">
+      <button class="filter-btn bg-blue-100 text-blue-700 border-blue-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('All', this)">All</button>
+      <button class="filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('NSAID', this)">NSAIDs</button>
+      <button class="filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('Analgesic', this)">Analgesics</button>
+      <!-- You can add more buttons here matching your Classes or Indications -->
+    </div>
+
+    <!-- Scrolling Drug List -->
+    <div id="drugListContainer" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50 pb-20">
+      <!-- JavaScript will inject the drug cards here -->
+      <div class="text-center text-gray-500 mt-10"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><br>Loading database...</div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: DRUG DETAILS
+       ========================================== -->
+  <div id="drugModal" class="fixed inset-0 bg-black/60 z-[60] hidden flex-col justify-end transition-opacity">
+    <div class="bg-white w-full rounded-t-3xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl relative">
+      
+      <!-- Close Handle -->
+      <div class="w-full flex justify-center pt-3 pb-1 shrink-0" onclick="closeModal()">
+        <div class="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+      </div>
+      
+      <!-- Modal Header -->
+      <div class="px-6 pb-4 pt-2 border-b shrink-0 flex justify-between items-start">
+        <div>
+          <h2 id="modalBrand" class="text-2xl font-bold text-gray-900 leading-tight"></h2>
+          <p id="modalGeneric" class="text-blue-600 font-medium text-sm mt-1"></p>
+          <span id="modalClass" class="inline-block mt-2 bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded-md font-medium border"></span>
+        </div>
+        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Modal Content (Scrollable) -->
+      <div class="p-6 overflow-y-auto flex-1 space-y-5 bg-gray-50" id="modalContent">
+        
+        <!-- Indications -->
+        <div>
+          <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1"><i class="fa-solid fa-bullseye mr-1"></i> Indications</h3>
+          <p id="modalIndication" class="text-gray-800 text-sm bg-white p-3 rounded-lg border shadow-sm"></p>
+        </div>
+
+        <!-- Dosages (Highlighted) -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-orange-50 border border-orange-100 p-3 rounded-lg">
+            <h3 class="text-xs font-bold text-orange-600 uppercase tracking-wider mb-1"><i class="fa-solid fa-person mr-1"></i> Adult Dose</h3>
+            <p id="modalDoseAdult" class="text-gray-800 text-sm font-medium"></p>
+          </div>
+          <div class="bg-purple-50 border border-purple-100 p-3 rounded-lg">
+            <h3 class="text-xs font-bold text-purple-600 uppercase tracking-wider mb-1"><i class="fa-solid fa-child mr-1"></i> Kids Dose</h3>
+            <p id="modalDoseKids" class="text-gray-800 text-sm font-medium"></p>
+          </div>
+        </div>
+
+        <!-- Expandable Details -->
+        <div class="bg-white rounded-lg border shadow-sm divide-y">
+          <!-- MOA -->
+          <details class="group p-4">
+            <summary class="font-bold text-gray-800 cursor-pointer flex justify-between items-center text-sm">
+              <span><i class="fa-solid fa-microscope w-5 text-gray-400"></i> Mechanism of Action</span>
+              <span class="transition group-open:rotate-180"><i class="fa-solid fa-chevron-down text-gray-400 text-xs"></i></span>
+            </summary>
+            <p id="modalMOA" class="mt-3 text-sm text-gray-600 leading-relaxed"></p>
+          </details>
+          
+          <!-- Counseling -->
+          <details class="group p-4">
+            <summary class="font-bold text-gray-800 cursor-pointer flex justify-between items-center text-sm">
+              <span><i class="fa-solid fa-comments w-5 text-green-500"></i> Counseling Points</span>
+              <span class="transition group-open:rotate-180"><i class="fa-solid fa-chevron-down text-gray-400 text-xs"></i></span>
+            </summary>
+            <p id="modalCounseling" class="mt-3 text-sm text-gray-600 leading-relaxed"></p>
+          </details>
+
+          <!-- Side Effects -->
+          <details class="group p-4">
+            <summary class="font-bold text-gray-800 cursor-pointer flex justify-between items-center text-sm">
+              <span><i class="fa-solid fa-triangle-exclamation w-5 text-red-500"></i> Side Effects</span>
+              <span class="transition group-open:rotate-180"><i class="fa-solid fa-chevron-down text-gray-400 text-xs"></i></span>
+            </summary>
+            <p id="modalSideEffects" class="mt-3 text-sm text-gray-600 leading-relaxed"></p>
+          </details>
+
+          <!-- Interactions -->
+          <details class="group p-4">
+            <summary class="font-bold text-gray-800 cursor-pointer flex justify-between items-center text-sm">
+              <span><i class="fa-solid fa-bolt w-5 text-yellow-500"></i> Interactions</span>
+              <span class="transition group-open:rotate-180"><i class="fa-solid fa-chevron-down text-gray-400 text-xs"></i></span>
+            </summary>
+            <p id="modalInteractions" class="mt-3 text-sm text-gray-600 leading-relaxed"></p>
+          </details>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       JAVASCRIPT LOGIC
+       ========================================== -->
+  <script>
+    // ⚠️ REPLACE THIS WITH YOUR APPS SCRIPT WEB APP URL
+    const API_URL = "https://script.google.com/macros/s/AKfycbwY_lVzzrHYb9VAqbx0me6BjXJfPsg3nHPhyPwKgj_ocryi1w-Vkf8BC02OR_8wvd9rIw/exec"; 
+    
+    let allDrugs = [];
+    let currentFilter = 'All';
+
+    // Check on load if already authenticated
+    window.onload = () => {
+      if(localStorage.getItem('pmg_drug_auth') === 'true') {
+        const savedData = localStorage.getItem('pmg_drug_data');
+        if(savedData) {
+          allDrugs = JSON.parse(savedData);
+          showMainApp();
+          renderList(allDrugs);
+        } else {
+          // Edge case: logged in but data cleared, require login again
+          logout();
+        }
+      }
+    };
+
+    // --- Authentication ---
+    async function attemptLogin() {
+      const pin = document.getElementById('pinInput').value;
+      const btn = document.getElementById('loginBtn');
+      const err = document.getElementById('loginError');
+      
+      if(!pin) return;
+
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
+      err.classList.add('hidden');
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ pin: pin })
+        });
+        
+        const result = await response.json();
+        
+        if(result.status === 'success') {
+          allDrugs = result.data;
+          
+          // Save session so they don't have to login every 5 minutes
+          localStorage.setItem('pmg_drug_auth', 'true');
+          localStorage.setItem('pmg_drug_data', JSON.stringify(allDrugs)); // Cache data locally
+          
+          showMainApp();
+          renderList(allDrugs);
+        } else {
+          err.innerText = result.message || "Invalid PIN";
+          err.classList.remove('hidden');
+          document.getElementById('pinInput').value = '';
+        }
+      } catch (error) {
+        err.innerText = "Connection error. Please try again.";
+        err.classList.remove('hidden');
+      } finally {
+        btn.innerHTML = 'Unlock';
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('pmg_drug_auth');
+      localStorage.removeItem('pmg_drug_data');
+      document.getElementById('mainApp').classList.add('hidden');
+      document.getElementById('mainApp').classList.remove('flex');
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('pinInput').value = '';
+    }
+
+    function showMainApp() {
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('mainApp').classList.remove('hidden');
+      document.getElementById('mainApp').classList.add('flex');
+    }
+
+    // --- Search & Filtering ---
+    function setFilter(filterType, btnElement) {
+      currentFilter = filterType;
+      
+      // Update chip styling
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.className = "filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border";
+      });
+      btnElement.className = "filter-btn bg-blue-100 text-blue-700 border-blue-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border";
+      
+      filterDrugs();
+    }
+
+    function filterDrugs() {
+      const term = document.getElementById('searchInput').value.toLowerCase();
+      
+      const filtered = allDrugs.filter(drug => {
+        // Safe check in case a cell is blank in Google Sheets
+        const brand = (drug.BrandName || "").toLowerCase();
+        const generic = (drug.GenericName || "").toLowerCase();
+        const drugClass = (drug.Class || "");
+        
+        const matchesSearch = brand.includes(term) || generic.includes(term);
+        const matchesFilter = currentFilter === 'All' || drugClass.includes(currentFilter);
+        
+        return matchesSearch && matchesFilter;
+      });
+      
+      renderList(filtered);
+    }
+
+    // --- UI Rendering ---
+    function renderList(drugs) {
+      const container = document.getElementById('drugListContainer');
+      container.innerHTML = '';
+      
+      if(drugs.length === 0) {
+        container.innerHTML = '<div class="text-center text-gray-500 mt-10">No medications found.</div>';
+        return;
+      }
+
+      drugs.forEach((drug, index) => {
+        const card = document.createElement('div');
+        // We pass the index to openModal so we can pull the exact data
+        card.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-100 active:bg-gray-50 transition";
+        card.onclick = () => openModal(drug);
+        
+        // Handling potentially long brand lists cleanly
+        const displayBrand = (drug.BrandName || "Unknown").split(',')[0] + ((drug.BrandName || "").includes(',') ? ' ...' : '');
+
+        card.innerHTML = `
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="font-bold text-gray-900">${displayBrand}</h3>
+              <p class="text-sm text-gray-500">${drug.GenericName || ""}</p>
+            </div>
+            <i class="fa-solid fa-chevron-right text-gray-300"></i>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // --- Modal Logic ---
+    function openModal(drug) {
+      document.getElementById('modalBrand').innerText = drug.BrandName || "N/A";
+      document.getElementById('modalGeneric').innerText = drug.GenericName || "N/A";
+      document.getElementById('modalClass').innerText = drug.Class || "N/A";
+      
+      document.getElementById('modalIndication').innerText = drug.Indications || "No data provided.";
+      document.getElementById('modalDoseAdult').innerText = drug.DoseAdult || "No data provided.";
+      document.getElementById('modalDoseKids').innerText = drug.DoseKids || "No data provided.";
+      
+      document.getElementById('modalMOA').innerText = drug.MOA || "No data provided.";
+      document.getElementById('modalCounseling').innerText = drug.CounselingPoints || "No data provided.";
+      document.getElementById('modalSideEffects').innerText = drug.SideEffects || "No data provided.";
+      document.getElementById('modalInteractions').innerText = drug.Interactions || "No data provided.";
+
+      // Reset all details elements to closed
+      document.querySelectorAll('details').forEach(detail => detail.removeAttribute('open'));
+
+      const modal = document.getElementById('drugModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('drugModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+  </script>
+</body>
+</html>
