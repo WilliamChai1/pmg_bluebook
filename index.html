@@ -2,24 +2,24 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <!-- This line forces the portrait mobile app layout -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#2563eb">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <title>PMG Drug Info</title>
-  <!-- PWA Manifest -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#2563eb">
-<link rel="apple-touch-icon" href="icon-192.png">
-  <!-- Load Tailwind CSS via CDN for fast styling -->
+  
+  <!-- Load Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   
   <!-- Load FontAwesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    /* Clean up the scrollbar for mobile feel */
-    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     body { -webkit-tap-highlight-color: transparent; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800 antialiased h-screen overflow-hidden flex flex-col">
@@ -46,7 +46,7 @@
   </div>
 
   <!-- ==========================================
-       SCREEN 2: MAIN APP (Hidden by default)
+       SCREEN 2: MAIN APP
        ========================================== -->
   <div id="mainApp" class="hidden flex-col h-full w-full">
     
@@ -62,24 +62,23 @@
         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
         </div>
-        <input type="text" id="searchInput" placeholder="Search Brand, Ingredient, or Indication..." 
+        <input type="text" id="searchInput" placeholder="Search all fields..." 
                class="w-full pl-10 pr-3 py-3 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 shadow-sm"
                onkeyup="filterDrugs()">
       </div>
     </div>
 
-    <!-- Filter Chips Area -->
-<div class="bg-white border-b px-4 py-3 flex overflow-x-auto gap-2 shrink-0 no-scrollbar">
-  <button class="filter-btn bg-blue-100 text-blue-700 border-blue-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('All', this)">All</button>
-  <button class="filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('NSAID', this)">NSAIDs</button>
-  <button class="filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('Fever', this)">Fever</button>
-  <button class="filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('Gout', this)">Gout</button>
-  <button class="filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('Arthritis', this)">Arthritis</button>
-</div>
+    <!-- Filter Chips Area (Updated to Categories) -->
+    <div class="bg-white border-b px-4 py-3 flex overflow-x-auto gap-2 shrink-0 no-scrollbar">
+      <button class="filter-btn bg-blue-100 text-blue-700 border-blue-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('All', this)">All</button>
+      <button class="filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('Brand', this)">Brand Name</button>
+      <button class="filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('Generic', this)">Generic Name</button>
+      <button class="filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('Class', this)">Class</button>
+      <button class="filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('Indications', this)">Indications</button>
+    </div>
 
     <!-- Scrolling Drug List -->
     <div id="drugListContainer" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50 pb-20">
-      <!-- JavaScript will inject the drug cards here -->
       <div class="text-center text-gray-500 mt-10"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><br>Loading database...</div>
     </div>
   </div>
@@ -106,7 +105,7 @@
       </div>
 
       <!-- Modal Content (Scrollable) -->
-      <div class="p-6 overflow-y-auto flex-1 space-y-5 bg-gray-50" id="modalContent">
+      <div class="p-6 overflow-y-auto flex-1 space-y-5 bg-gray-50">
         
         <!-- Indications -->
         <div>
@@ -114,7 +113,7 @@
           <p id="modalIndication" class="text-gray-800 text-sm bg-white p-3 rounded-lg border shadow-sm"></p>
         </div>
 
-        <!-- Dosages (Highlighted) -->
+        <!-- Dosages -->
         <div class="grid grid-cols-2 gap-3">
           <div class="bg-orange-50 border border-orange-100 p-3 rounded-lg">
             <h3 class="text-xs font-bold text-orange-600 uppercase tracking-wider mb-1"><i class="fa-solid fa-person mr-1"></i> Adult Dose</h3>
@@ -128,7 +127,6 @@
 
         <!-- Expandable Details -->
         <div class="bg-white rounded-lg border shadow-sm divide-y">
-          <!-- MOA -->
           <details class="group p-4">
             <summary class="font-bold text-gray-800 cursor-pointer flex justify-between items-center text-sm">
               <span><i class="fa-solid fa-microscope w-5 text-gray-400"></i> Mechanism of Action</span>
@@ -137,7 +135,6 @@
             <p id="modalMOA" class="mt-3 text-sm text-gray-600 leading-relaxed"></p>
           </details>
           
-          <!-- Counseling -->
           <details class="group p-4">
             <summary class="font-bold text-gray-800 cursor-pointer flex justify-between items-center text-sm">
               <span><i class="fa-solid fa-comments w-5 text-green-500"></i> Counseling Points</span>
@@ -146,7 +143,6 @@
             <p id="modalCounseling" class="mt-3 text-sm text-gray-600 leading-relaxed"></p>
           </details>
 
-          <!-- Side Effects -->
           <details class="group p-4">
             <summary class="font-bold text-gray-800 cursor-pointer flex justify-between items-center text-sm">
               <span><i class="fa-solid fa-triangle-exclamation w-5 text-red-500"></i> Side Effects</span>
@@ -155,7 +151,6 @@
             <p id="modalSideEffects" class="mt-3 text-sm text-gray-600 leading-relaxed"></p>
           </details>
 
-          <!-- Interactions -->
           <details class="group p-4">
             <summary class="font-bold text-gray-800 cursor-pointer flex justify-between items-center text-sm">
               <span><i class="fa-solid fa-bolt w-5 text-yellow-500"></i> Interactions</span>
@@ -172,13 +167,12 @@
        JAVASCRIPT LOGIC
        ========================================== -->
   <script>
-    // ⚠️ REPLACE THIS WITH YOUR APPS SCRIPT WEB APP URL
+    // Live Apps Script Web App URL
     const API_URL = "https://script.google.com/macros/s/AKfycbwY_lVzzrHYb9VAqbx0me6BjXJfPsg3nHPhyPwKgj_ocryi1w-Vkf8BC02OR_8wvd9rIw/exec"; 
     
     let allDrugs = [];
     let currentFilter = 'All';
 
-    // Check on load if already authenticated
     window.onload = () => {
       if(localStorage.getItem('pmg_drug_auth') === 'true') {
         const savedData = localStorage.getItem('pmg_drug_data');
@@ -187,13 +181,11 @@
           showMainApp();
           renderList(allDrugs);
         } else {
-          // Edge case: logged in but data cleared, require login again
           logout();
         }
       }
     };
 
-    // --- Authentication ---
     async function attemptLogin() {
       const pin = document.getElementById('pinInput').value;
       const btn = document.getElementById('loginBtn');
@@ -214,10 +206,8 @@
         
         if(result.status === 'success') {
           allDrugs = result.data;
-          
-          // Save session so they don't have to login every 5 minutes
           localStorage.setItem('pmg_drug_auth', 'true');
-          localStorage.setItem('pmg_drug_data', JSON.stringify(allDrugs)); // Cache data locally
+          localStorage.setItem('pmg_drug_data', JSON.stringify(allDrugs)); 
           
           showMainApp();
           renderList(allDrugs);
@@ -249,39 +239,51 @@
       document.getElementById('mainApp').classList.add('flex');
     }
 
-    // --- Search & Filtering ---
-    function setFilter(filterType, btnElement) {
-      currentFilter = filterType;
+    // --- Dynamic Filtering Logic ---
+    function setFilter(filterCategory, btnElement) {
+      currentFilter = filterCategory;
       
-      // Update chip styling
       document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.className = "filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border";
       });
       btnElement.className = "filter-btn bg-blue-100 text-blue-700 border-blue-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border";
       
-   function filterDrugs() {
-  const term = document.getElementById('searchInput').value.toLowerCase();
-  
-  const filtered = allDrugs.filter(drug => {
-    // 1. Grab all relevant data and convert to lowercase for easy matching
-    const brand = (drug.BrandName || "").toLowerCase();
-    const generic = (drug.GenericName || "").toLowerCase();
-    const drugClass = (drug.Class || "").toLowerCase();
-    const indications = (drug.Indications || "").toLowerCase();
-    
-    // 2. Check if the typed search term is in Brand, Generic, OR Indications
-    const matchesSearch = brand.includes(term) || generic.includes(term) || indications.includes(term);
-    
-    // 3. Check if the selected Filter Chip is in Class OR Indications
-    const filterLower = currentFilter.toLowerCase();
-    const matchesFilter = currentFilter === 'All' || drugClass.includes(filterLower) || indications.includes(filterLower);
-    
-    // 4. Return the drug only if it matches both the search text and the active chip
-    return matchesSearch && matchesFilter;
-  });
-  
-  renderList(filtered);
-}
+      const searchInput = document.getElementById('searchInput');
+      if (filterCategory === 'All') {
+        searchInput.placeholder = "Search all fields...";
+      } else {
+        searchInput.placeholder = "Search by " + btnElement.innerText + "...";
+      }
+      
+      filterDrugs();
+    }
+
+    function filterDrugs() {
+      const term = document.getElementById('searchInput').value.toLowerCase();
+      
+      const filtered = allDrugs.filter(drug => {
+        const brand = (drug.BrandName || "").toLowerCase();
+        const generic = (drug.GenericName || "").toLowerCase();
+        const drugClass = (drug.Class || "").toLowerCase();
+        const indications = (drug.Indications || "").toLowerCase();
+        
+        if (currentFilter === 'All') {
+          return brand.includes(term) || generic.includes(term) || drugClass.includes(term) || indications.includes(term);
+        } else if (currentFilter === 'Brand') {
+          return brand.includes(term);
+        } else if (currentFilter === 'Generic') {
+          return generic.includes(term);
+        } else if (currentFilter === 'Class') {
+          return drugClass.includes(term);
+        } else if (currentFilter === 'Indications') {
+          return indications.includes(term);
+        }
+        return true;
+      });
+      
+      renderList(filtered);
+    }
+
     // --- UI Rendering ---
     function renderList(drugs) {
       const container = document.getElementById('drugListContainer');
@@ -292,13 +294,11 @@
         return;
       }
 
-      drugs.forEach((drug, index) => {
+      drugs.forEach(drug => {
         const card = document.createElement('div');
-        // We pass the index to openModal so we can pull the exact data
         card.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-100 active:bg-gray-50 transition";
         card.onclick = () => openModal(drug);
         
-        // Handling potentially long brand lists cleanly
         const displayBrand = (drug.BrandName || "Unknown").split(',')[0] + ((drug.BrandName || "").includes(',') ? ' ...' : '');
 
         card.innerHTML = `
@@ -329,7 +329,6 @@
       document.getElementById('modalSideEffects').innerText = drug.SideEffects || "No data provided.";
       document.getElementById('modalInteractions').innerText = drug.Interactions || "No data provided.";
 
-      // Reset all details elements to closed
       document.querySelectorAll('details').forEach(detail => detail.removeAttribute('open'));
 
       const modal = document.getElementById('drugModal');
