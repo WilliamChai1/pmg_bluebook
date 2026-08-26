@@ -4,9 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#2563eb">
+  
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta name="Expires" content="0">
+  
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
   <title>PMG Drug Info</title>
@@ -34,7 +36,6 @@
       <h1 class="text-2xl font-bold mb-2 text-gray-900">PMG Drug Info</h1>
       <p class="text-gray-500 mb-8 text-sm">Enter outlet PIN to access</p>
       
-      <!-- Removed the form wrapper to prevent mobile auto-refresh bugs -->
       <input type="password" id="pinInput" placeholder="Enter 6-digit PIN" 
              class="w-full text-center text-2xl tracking-widest p-4 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-0 outline-none mb-4 transition-all"
              inputmode="numeric" maxlength="6">
@@ -172,13 +173,18 @@
     let allDrugs = [];
     let currentFilter = 'All';
 
-    // Allow users to hit "Enter" on their mobile keyboard to login securely
-    document.getElementById('pinInput').addEventListener('keypress', function (e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        attemptLogin();
+    // Safely attach the Enter key listener once the page loads
+    window.onload = function() {
+      const pinInput = document.getElementById('pinInput');
+      if(pinInput) {
+        pinInput.addEventListener('keypress', function (e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            attemptLogin();
+          }
+        });
       }
-    });
+    };
 
     function getData(drug, keys) {
       for (let key of keys) {
@@ -197,9 +203,9 @@
       err.classList.add('hidden');
 
       try {
-        // Switched to a GET request to bypass mobile browser CORS/Redirect blockers
         const response = await fetch(`${API_URL}?pin=${encodeURIComponent(pin)}`, {
-          method: 'GET'
+          method: 'GET',
+          redirect: 'follow'
         });
         
         const result = await response.json();
@@ -286,7 +292,6 @@
       container.innerHTML = '';
       const term = document.getElementById('searchInput').value.trim();
       
-      // FOLDER VIEW LOGIC
       if (term === '' && (currentFilter === 'Class' || currentFilter === 'Indications')) {
         let items = new Set();
         
@@ -331,7 +336,6 @@
         return; 
       }
 
-      // DRUG VIEW LOGIC
       if(drugs.length === 0) {
         container.innerHTML = '<div class="text-center text-gray-500 mt-10">No medications found.</div>';
         return;
@@ -391,4 +395,22 @@
       document.getElementById('modalDoseAdult').innerText = getData(drug, ['DoseAdult', 'Dose Adult']) || "No data provided.";
       document.getElementById('modalDoseKids').innerText = getData(drug, ['DoseKids', 'Dose Kids']) || "No data provided.";
       document.getElementById('modalMOA').innerText = getData(drug, ['MOA', 'Mechanism of Action']) || "No data provided.";
-      do
+      document.getElementById('modalCounseling').innerText = getData(drug, ['CounselingPoints', 'Counseling Points']) || "No data provided.";
+      document.getElementById('modalSideEffects').innerText = getData(drug, ['SideEffects', 'Side Effects']) || "No data provided.";
+      document.getElementById('modalInteractions').innerText = getData(drug, ['Interactions']) || "No data provided.";
+
+      document.querySelectorAll('details').forEach(detail => detail.removeAttribute('open'));
+
+      const modal = document.getElementById('drugModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('drugModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+  </script>
+</body>
+</html>
