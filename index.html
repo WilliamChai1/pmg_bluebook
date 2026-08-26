@@ -4,12 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#2563eb">
-  
-  <!-- Cache-Busting Tags -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta name="Expires" content="0">
-  
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
   <title>PMG Drug Info</title>
@@ -37,14 +34,15 @@
       <h1 class="text-2xl font-bold mb-2 text-gray-900">PMG Drug Info</h1>
       <p class="text-gray-500 mb-8 text-sm">Enter outlet PIN to access</p>
       
-      <form onsubmit="event.preventDefault(); attemptLogin();" class="w-full">
-        <input type="password" id="pinInput" placeholder="Enter 6-digit PIN" 
-               class="w-full text-center text-2xl tracking-widest p-4 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-0 outline-none mb-4 transition-all"
-               inputmode="numeric" maxlength="6">
-        <button type="submit" id="loginBtn" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-blue-700 transition-colors">
-          Unlock
-        </button>
-      </form>
+      <!-- Removed the form wrapper to prevent mobile auto-refresh bugs -->
+      <input type="password" id="pinInput" placeholder="Enter 6-digit PIN" 
+             class="w-full text-center text-2xl tracking-widest p-4 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-0 outline-none mb-4 transition-all"
+             inputmode="numeric" maxlength="6">
+      
+      <button id="loginBtn" onclick="attemptLogin()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-blue-700 transition-colors">
+        Unlock
+      </button>
+      
       <p id="loginError" class="text-red-500 text-sm mt-4 hidden font-medium"></p>
     </div>
   </div>
@@ -174,6 +172,14 @@
     let allDrugs = [];
     let currentFilter = 'All';
 
+    // Allow users to hit "Enter" on their mobile keyboard to login securely
+    document.getElementById('pinInput').addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        attemptLogin();
+      }
+    });
+
     function getData(drug, keys) {
       for (let key of keys) {
         if (drug[key] !== undefined && drug[key] !== null) return String(drug[key]);
@@ -191,11 +197,9 @@
       err.classList.add('hidden');
 
       try {
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          redirect: 'follow', // <--- THE MAGIC FIX FOR MOBILE BROWSERS!
-          body: JSON.stringify({ pin: pin })
+        // Switched to a GET request to bypass mobile browser CORS/Redirect blockers
+        const response = await fetch(`${API_URL}?pin=${encodeURIComponent(pin)}`, {
+          method: 'GET'
         });
         
         const result = await response.json();
@@ -209,7 +213,7 @@
           err.classList.remove('hidden');
         }
       } catch (error) {
-        err.innerText = "Connection blocked. Please check your internet or try again.";
+        err.innerText = "Connection blocked. Please try again.";
         err.classList.remove('hidden');
       } finally {
         btn.innerHTML = 'Unlock';
@@ -282,6 +286,7 @@
       container.innerHTML = '';
       const term = document.getElementById('searchInput').value.trim();
       
+      // FOLDER VIEW LOGIC
       if (term === '' && (currentFilter === 'Class' || currentFilter === 'Indications')) {
         let items = new Set();
         
@@ -326,6 +331,7 @@
         return; 
       }
 
+      // DRUG VIEW LOGIC
       if(drugs.length === 0) {
         container.innerHTML = '<div class="text-center text-gray-500 mt-10">No medications found.</div>';
         return;
@@ -385,5 +391,4 @@
       document.getElementById('modalDoseAdult').innerText = getData(drug, ['DoseAdult', 'Dose Adult']) || "No data provided.";
       document.getElementById('modalDoseKids').innerText = getData(drug, ['DoseKids', 'Dose Kids']) || "No data provided.";
       document.getElementById('modalMOA').innerText = getData(drug, ['MOA', 'Mechanism of Action']) || "No data provided.";
-      document.getElementById('modalCounseling').innerText = getData(drug, ['CounselingPoints', 'Counseling Points']) || "No data provided.";
-      document.getElementById('modalSideEffects').
+      do
