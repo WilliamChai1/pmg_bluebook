@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#2563eb">
   
-  <!-- Cache-Busting Tags to force app updates instantly -->
+  <!-- Cache-Busting Tags -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta name="Expires" content="0">
@@ -70,7 +70,6 @@
       </div>
     </div>
 
-    <!-- Updated Filter Chips -->
     <div class="bg-white border-b px-4 py-3 flex overflow-x-auto gap-2 shrink-0 no-scrollbar">
       <button class="filter-btn bg-blue-100 text-blue-700 border-blue-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('All', this)">All</button>
       <button class="filter-btn bg-white text-gray-600 border-gray-200 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border" onclick="setFilter('Brand', this)">Brand Name</button>
@@ -96,11 +95,9 @@
       <div class="px-6 pb-4 pt-2 border-b shrink-0 flex justify-between items-start">
         <div class="flex-1 pr-2">
           <h2 id="modalBrand" class="text-2xl font-bold text-gray-900 leading-tight"></h2>
-          <!-- Clarified Active vs Generic -->
           <p id="modalActiveIng" class="text-blue-600 font-bold text-sm mt-1 flex items-center"><i class="fa-solid fa-flask mr-1.5"></i><span></span></p>
           <p id="modalGeneric" class="text-gray-500 font-medium text-xs mt-0.5">Generic: <span></span></p>
           
-          <!-- Badges for Class, Pregnancy, G6PD -->
           <div class="mt-3 flex flex-wrap gap-2">
             <span id="modalClass" class="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded border font-medium"></span>
             <span id="modalPregnancyWrap" class="hidden inline-block bg-pink-50 text-pink-700 border-pink-200 border text-xs px-2 py-1 rounded font-medium">
@@ -177,7 +174,6 @@
     let allDrugs = [];
     let currentFilter = 'All';
 
-    // Helper to extract data regardless of exact column spacing/casing
     function getData(drug, keys) {
       for (let key of keys) {
         if (drug[key] !== undefined && drug[key] !== null) return String(drug[key]);
@@ -198,9 +194,12 @@
         const response = await fetch(API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          redirect: 'follow', // <--- THE MAGIC FIX FOR MOBILE BROWSERS!
           body: JSON.stringify({ pin: pin })
         });
+        
         const result = await response.json();
+        
         if(result.status === 'success') {
           allDrugs = result.data;
           showMainApp();
@@ -210,7 +209,7 @@
           err.classList.remove('hidden');
         }
       } catch (error) {
-        err.innerText = "Connection error. Please try again.";
+        err.innerText = "Connection blocked. Please check your internet or try again.";
         err.classList.remove('hidden');
       } finally {
         btn.innerHTML = 'Unlock';
@@ -283,7 +282,6 @@
       container.innerHTML = '';
       const term = document.getElementById('searchInput').value.trim();
       
-      // FOLDER VIEW LOGIC
       if (term === '' && (currentFilter === 'Class' || currentFilter === 'Indications')) {
         let items = new Set();
         
@@ -328,7 +326,6 @@
         return; 
       }
 
-      // DRUG VIEW LOGIC
       if(drugs.length === 0) {
         container.innerHTML = '<div class="text-center text-gray-500 mt-10">No medications found.</div>';
         return;
@@ -342,7 +339,6 @@
         const rawBrand = getData(drug, ['BrandName', 'Brand Name', 'Brand']) || "Unknown";
         const displayBrand = rawBrand.split(',')[0] + (rawBrand.includes(',') ? ' ...' : '');
         
-        // Priority for subtitle text
         let subtitleText = getData(drug, ['ActiveIngredient', 'Active Ingredient', 'Active']) || getData(drug, ['GenericName', 'Generic Name']);
         
         if (currentFilter === 'Class') {
@@ -365,13 +361,11 @@
     }
 
     function openModal(drug) {
-      // Basic Data
       document.getElementById('modalBrand').innerText = getData(drug, ['BrandName', 'Brand Name', 'Brand']) || "N/A";
       document.querySelector('#modalActiveIng span').innerText = getData(drug, ['ActiveIngredient', 'Active Ingredient', 'Active']) || "Active Ingredient N/A";
       document.querySelector('#modalGeneric span').innerText = getData(drug, ['GenericName', 'Generic Name', 'GenericTradeName']) || "N/A";
       document.getElementById('modalClass').innerText = getData(drug, ['Class']) || "No Class";
       
-      // Specialized Badges (Pregnancy & G6PD)
       const preg = getData(drug, ['Pregnancy', 'pregnancy', 'Pregnancy Category']);
       const g6pd = getData(drug, ['G6PD', 'G6pd', 'g6pd']);
       
@@ -387,8 +381,9 @@
         g6pdWrap.classList.remove('hidden');
       } else { g6pdWrap.classList.add('hidden'); }
 
-      // Details
       document.getElementById('modalIndication').innerText = getData(drug, ['Indications']) || "No data provided.";
       document.getElementById('modalDoseAdult').innerText = getData(drug, ['DoseAdult', 'Dose Adult']) || "No data provided.";
       document.getElementById('modalDoseKids').innerText = getData(drug, ['DoseKids', 'Dose Kids']) || "No data provided.";
-      document.getEle
+      document.getElementById('modalMOA').innerText = getData(drug, ['MOA', 'Mechanism of Action']) || "No data provided.";
+      document.getElementById('modalCounseling').innerText = getData(drug, ['CounselingPoints', 'Counseling Points']) || "No data provided.";
+      document.getElementById('modalSideEffects').
