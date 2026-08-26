@@ -246,6 +246,9 @@
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('mainApp').classList.remove('hidden');
       document.getElementById('mainApp').classList.add('flex');
+      
+      // Push an initial state into the phone's history to act as our "Back Button Trap"
+      history.pushState({ page: 'main' }, "");
     }
 
     function setFilter(filterCategory, btnElement) {
@@ -274,7 +277,6 @@
       const filtered = allDrugs.filter(drug => {
         const brand = getData(drug, ['OriginalBrandName', 'BrandName', 'Brand Name', 'Brand']).toLowerCase();
         const active = getData(drug, ['ActiveIngredient', 'Active Ingredient', 'Active', 'Ingredient']).toLowerCase();
-        // Added GenericBrandName to the mapping
         const generic = getData(drug, ['GenericBrandName', 'GenericName', 'Generic Name', 'GenericTradeName', 'Generic']).toLowerCase();
         const drugClass = getData(drug, ['Class']).toLowerCase();
         const indications = getData(drug, ['Indications']).toLowerCase();
@@ -364,7 +366,6 @@
         const activeIng = getData(drug, ['ActiveIngredient', 'Active Ingredient', 'Active', 'Ingredient']) || "Unknown Active";
         
         let mainTitle = displayBrand;
-        // Added GenericBrandName to subtitle fallback
         let subtitleText = activeIng || getData(drug, ['GenericBrandName', 'GenericName', 'Generic Name', 'Generic']);
         
         if (currentFilter === 'Class') {
@@ -392,12 +393,9 @@
     function openModal(drug) {
       document.getElementById('modalBrand').innerText = getData(drug, ['OriginalBrandName', 'BrandName', 'Brand Name', 'Brand']) || "N/A";
       document.querySelector('#modalActiveIng span').innerText = getData(drug, ['ActiveIngredient', 'Active Ingredient', 'Active', 'Ingredient']) || "Active Ingredient N/A";
-      
-      // Added GenericBrandName here
       document.querySelector('#modalGeneric span').innerText = getData(drug, ['GenericBrandName', 'GenericName', 'Generic Name', 'GenericTradeName', 'Generic']) || "N/A";
       document.getElementById('modalClass').innerText = getData(drug, ['Class']) || "No Class";
       
-      // Mapped exactly to your sheet: PregnancySuitability & G6PDSuitability
       const preg = getData(drug, ['PregnancySuitability', 'Pregnancy', 'pregnant', 'Pregnancy Category']);
       const g6pd = getData(drug, ['G6PDSuitability', 'G6PD', 'G6pd deficiency']);
       
@@ -433,6 +431,34 @@
       modal.classList.add('hidden');
       modal.classList.remove('flex');
     }
+
+    // ==========================================
+    // BACK BUTTON & SWIPE INTERCEPTOR
+    // ==========================================
+    window.addEventListener('popstate', function(event) {
+      const modal = document.getElementById('drugModal');
+      const term = document.getElementById('searchInput').value.trim();
+      let preventedExit = false;
+
+      // 1. If the drug detail modal is open, swipe-back simply closes it
+      if (!modal.classList.contains('hidden')) {
+        closeModal();
+        preventedExit = true;
+      } 
+      // 2. If the user is looking at a specific folder, swipe-back clears the search
+      else if (term !== '' && (currentFilter === 'Class' || currentFilter === 'Indications' || currentFilter === 'Active')) {
+        document.getElementById('searchInput').value = '';
+        filterDrugs();
+        preventedExit = true;
+      }
+
+      // If we intercepted the back action to keep the app open, 
+      // we push the trap back into the history so the NEXT swipe works too.
+      if (preventedExit) {
+        history.pushState({ page: 'main' }, "");
+      }
+    });
+
   </script>
 </body>
 </html>
