@@ -56,7 +56,10 @@
     <div class="bg-blue-600 text-white p-4 shadow-md z-10 shrink-0">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-bold"><i class="fa-solid fa-pills mr-2"></i>Drug Info</h2>
-        <button onclick="logout()" class="text-blue-100 text-sm hover:text-white"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+        <div class="flex gap-4">
+          <button onclick="openRefModal()" class="text-blue-100 text-lg hover:text-white" title="Abbreviations Reference"><i class="fa-solid fa-book-medical"></i></button>
+          <button onclick="logout()" class="text-blue-100 text-lg hover:text-white" title="Logout"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+        </div>
       </div>
       
       <div class="relative">
@@ -165,6 +168,80 @@
   </div>
 
   <!-- ==========================================
+       MODAL: QUICK REFERENCE DICTIONARY
+       ========================================== -->
+  <div id="refModal" class="fixed inset-0 bg-black/60 z-[70] hidden flex-col justify-end transition-opacity">
+    <div class="bg-white w-full rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl relative">
+      <div class="w-full flex justify-center pt-3 pb-1 shrink-0" onclick="closeRefModal()">
+        <div class="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+      </div>
+      
+      <div class="px-6 pb-4 pt-2 border-b shrink-0 flex justify-between items-center bg-white">
+        <h2 class="text-xl font-bold text-gray-900"><i class="fa-solid fa-book-medical text-blue-600 mr-2"></i>Abbreviations</h2>
+        <button onclick="closeRefModal()" class="text-gray-400 hover:text-gray-700 bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="p-6 overflow-y-auto flex-1 bg-gray-50 pb-20">
+        
+        <div class="bg-white rounded-lg border shadow-sm divide-y">
+          <!-- Frequency -->
+          <div class="p-3 bg-blue-50/50">
+            <h3 class="text-xs font-bold text-blue-600 uppercase tracking-wider">Frequency</h3>
+          </div>
+          <div class="p-3 flex"><span class="font-bold text-gray-800 w-24">OD</span><span class="text-gray-600">Once a day</span></div>
+          <div class="p-3 flex"><span class="font-bold text-gray-800 w-24">BD / BID</span><span class="text-gray-600">Twice a day</span></div>
+          <div class="p-3 flex"><span class="font-bold text-gray-800 w-24">TDS / TID</span><span class="text-gray-600">Three times a day</span></div>
+          <div class="p-3 flex"><span class="font-bold text-gray-800 w-24">QID</span><span class="text-gray-600">Four times a day</span></div>
+          <div class="p-3 flex"><span class="font-bold text-gray-800 w-24">EOD</span><span class="text-gray-600">Every other day</span></div>
+          <div class="p-3 flex"><span class="font-bold text-gray-800 w-24">Q4H</span><span class="text-gray-600">Every 4 hours</span></div>
+          <div class="p-3 flex"><span class="font-bold text-gray-800 w-24">Q6H</span><span class="text-gray-600">Every 6 hours</span></div>
+          <div class="p-3 flex"><span class="font-bold text-gray-800 w-24">PRN</span><span class="text-gray-600">As needed</span></div>
+          <div class="p-3 flex"><span class="font-bold text-gray-800 w-24">STAT</span><span class="text-gray-600">Immediately</span></div>
+
+          <!-- Timing -->
+          <div class="p-3 bg-purple-50/50 border-t-2">
+            <h3 class="text-xs font-bold text-purple-600 uppercase tracking-wider">Timing & Meals</h3>
+          </div>
+          <div class="p-3 flex"><span class="font-bold text-gray-800 w-24">OM / Mane</span><span class="text-gray-600">In the morning</span></div>
+          <div class="p-3 flex"><span class="font-bold text-gray-800 w-24">ON / Nocte</span><span class="text-gray-600">At night</span></div>
+          <div class="p-3 flex"><span class="font-bold text-gray-800 w-24">AC</span><span class="text-gray-600">Before meals</span></div>
+          <div class="p-3 flex"><span class="font-bold text-gray-800 w-24">PC</span><span class="text-gray-600">After meals</span></div>
+
+          <!-- Duration -->
+          <div class="p-3 bg-teal-50/50 border-t-2">
+            <h3 class="text-xs font-bold text-teal-600 uppercase tracking-wider">Duration</h3>
+          </div>
+          <div class="p-3 flex"><span class="font-bold text-gray-800 w-24">1/7</span><span class="text-gray-600">One day</span></div>
+          <div class="p-3 flex"><span class="font-bold text-gray-800 w-24">1/52</span><span class="text-gray-600">One week</span></div>
+          <div class="p-3 flex"><span class="font-bold text-gray-800 w-24">1/12</span><span class="text-gray-600">One month</span></div>
+
+          <!-- Route -->
+          <div class="p-3 bg-emerald-50/50 border-t-2">
+            <h3 class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Route</h3>
+          </div>
+          <div class="p-3 flex"><span class="font-bold text-gray-800 w-24">PO</span><span class="text-gray-600">By mouth (orally)</span></div>
+          <div class="p-3 flex"><span class="font-bold text-gray-800 w-24">SL</span><span class="text-gray-600">Sublingual (under tongue)</span></div>
+          <div class="p-3 flex"><span class="font-bold text-gray-800 w-24">IV</span><span class="text-gray-600">Intravenous</span></div>
+          <div class="p-3 flex"><span class="font-bold text-gray-800 w-24">IM</span><span class="text-gray-600">Intramuscular</span></div>
+          <div class="p-3 flex"><span class="font-bold text-gray-800 w-24">SC / SQ</span><span class="text-gray-600">Subcutaneous</span></div>
+          <div class="p-3 flex"><span class="font-bold text-gray-800 w-24">PR</span><span class="text-gray-600">Per rectum (suppository)</span></div>
+          <div class="p-3 flex"><span class="font-bold text-gray-800 w-24">Topical</span><span class="text-gray-600">Apply to skin</span></div>
+
+          <!-- Formulation -->
+          <div class="p-3 bg-amber-50/50 border-t-2">
+            <h3 class="text-xs font-bold text-amber-600 uppercase tracking-wider">Formulation</h3>
+          </div>
+          <div class="p-3 flex"><span class="font-bold text-gray-800 w-24">Supp</span><span class="text-gray-600">Suppository</span></div>
+          <div class="p-3 flex"><span class="font-bold text-gray-800 w-24">Syp</span><span class="text-gray-600">Syrup</span></div>
+          <div class="p-3 flex"><span class="font-bold text-gray-800 w-24">E/D</span><span class="text-gray-600">Eye or Ear drop</span></div>
+
+        </div>
+        
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
        JAVASCRIPT LOGIC
        ========================================== -->
   <script>
@@ -246,8 +323,6 @@
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('mainApp').classList.remove('hidden');
       document.getElementById('mainApp').classList.add('flex');
-      
-      // Push an initial state into the phone's history to act as our "Back Button Trap"
       history.pushState({ page: 'main' }, "");
     }
 
@@ -431,29 +506,39 @@
       modal.classList.add('hidden');
       modal.classList.remove('flex');
     }
+    
+    function openRefModal() {
+      const modal = document.getElementById('refModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
 
-    // ==========================================
-    // BACK BUTTON & SWIPE INTERCEPTOR
-    // ==========================================
+    function closeRefModal() {
+      const modal = document.getElementById('refModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
     window.addEventListener('popstate', function(event) {
-      const modal = document.getElementById('drugModal');
+      const drugModal = document.getElementById('drugModal');
+      const refModal = document.getElementById('refModal');
       const term = document.getElementById('searchInput').value.trim();
       let preventedExit = false;
 
-      // 1. If the drug detail modal is open, swipe-back simply closes it
-      if (!modal.classList.contains('hidden')) {
+      if (!drugModal.classList.contains('hidden')) {
         closeModal();
         preventedExit = true;
       } 
-      // 2. If the user is looking at a specific folder, swipe-back clears the search
+      else if (!refModal.classList.contains('hidden')) {
+        closeRefModal();
+        preventedExit = true;
+      }
       else if (term !== '' && (currentFilter === 'Class' || currentFilter === 'Indications' || currentFilter === 'Active')) {
         document.getElementById('searchInput').value = '';
         filterDrugs();
         preventedExit = true;
       }
 
-      // If we intercepted the back action to keep the app open, 
-      // we push the trap back into the history so the NEXT swipe works too.
       if (preventedExit) {
         history.pushState({ page: 'main' }, "");
       }
