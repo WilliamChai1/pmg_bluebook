@@ -329,66 +329,61 @@
     }
 
     async function attemptLogin() {
-      const userInput = document.getElementById('usernameInput');
-      const passInput = document.getElementById('passwordInput');
-      const btn = document.getElementById('loginBtn');
-      const err = document.getElementById('loginError');
+  const userInput = document.getElementById('usernameInput');
+  const passInput = document.getElementById('passwordInput');
+  const btn = document.getElementById('loginBtn');
+  const err = document.getElementById('loginError');
 
-      const username = (userInput ? userInput.value : "").trim().toLowerCase();
-      const password = (passInput ? passInput.value : "").trim();
-      
-      if (!username || !password) {
-        err.innerText = "Please enter both username and password.";
-        err.classList.remove('hidden');
-        return;
+  const username = (userInput ? userInput.value : "").trim().toLowerCase();
+  const password = (passInput ? passInput.value : "").trim();
+  
+  if (!username || !password) {
+    err.innerText = "Please enter both username and password.";
+    err.classList.remove('hidden');
+    return;
+  }
+
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Verifying...';
+  btn.disabled = true;
+  err.classList.add('hidden');
+
+  try {
+    const loginUrl = `${API_URL}?action=login&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&t=${Date.now()}`;
+    const response = await fetch(loginUrl, {
+      method: 'GET',
+      redirect: 'follow'
+    });
+    
+    const result = await response.json();
+    
+    if (result && result.success) {
+      currentUser = result.user;
+      localStorage.setItem('bluebook_auth_token', result.token || 'valid_token');
+      localStorage.setItem('bluebook_user', JSON.stringify(result.user));
+
+      showMainApp();
+
+      if (result.drugs && Array.isArray(result.drugs)) {
+        allDrugs = result.drugs;
+        localStorage.setItem('bluebook_cached_drugs', JSON.stringify(allDrugs));
+        renderList(allDrugs);
+      } else {
+        await fetchLatestData();
       }
-
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Verifying...';
-      btn.disabled = true;
-      err.classList.add('hidden');
-
-      try {
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({
-            action: 'login',
-            username: username,
-            password: password
-          })
-        });
-        
-        const result = await response.json();
-        
-        if (result && result.success) {
-          currentUser = result.user;
-          localStorage.setItem('bluebook_auth_token', result.token || 'valid_token');
-          localStorage.setItem('bluebook_user', JSON.stringify(result.user));
-
-          showMainApp();
-
-          // Load drug data returned from backend or fetch
-          if (result.drugs && Array.isArray(result.drugs)) {
-            allDrugs = result.drugs;
-            localStorage.setItem('bluebook_cached_drugs', JSON.stringify(allDrugs));
-            renderList(allDrugs);
-          } else {
-            await fetchLatestData();
-          }
-        } else {
-          err.innerText = (result && result.error) ? result.error : "Invalid username or password.";
-          err.classList.remove('hidden');
-        }
-      } catch (error) {
-        console.error("Login request error:", error);
-        err.innerText = "Connection blocked or network error. Please try again.";
-        err.classList.remove('hidden');
-      } finally {
-        btn.innerHTML = '<span>Sign In</span>';
-        btn.disabled = false;
-        if (passInput) passInput.value = '';
-      }
+    } else {
+      err.innerText = (result && result.error) ? result.error : "Invalid username or password.";
+      err.classList.remove('hidden');
     }
+  } catch (error) {
+    console.error("Login request error:", error);
+    err.innerText = "Connection blocked or network error. Please try again.";
+    err.classList.remove('hidden');
+  } finally {
+    btn.innerHTML = '<span>Sign In</span>';
+    btn.disabled = false;
+    if (passInput) passInput.value = '';
+  }
+}
 
     async function fetchLatestData() {
       try {
